@@ -26,7 +26,7 @@ namespace WebAppDog.Controllers
             return View();
         }
         [HttpPost]
-
+        
         public IActionResult Create(DogCreateViewModel bindingModel)
         {
             if (ModelState.IsValid)
@@ -43,15 +43,34 @@ namespace WebAppDog.Controllers
                 context.SaveChanges();
 
                 return this.RedirectToAction("Success");
-
             }
-
             return this.View();
         }
         public IActionResult Success()
         {
             return this.View();
         }
+        public IActionResult All()
+        {
+            List<DogAllViewModel> dogs = context.Dogs
+                .Select(dogFrpmDb => new DogAllViewModel
 
+                 {
+                    Id = dogFrpmDb.Id,
+                    Name = dogFrpmDb.Name,
+                    Age= dogFrpmDb.Age,
+                    Breed= dogFrpmDb.Breed,
+                    Picture= dogFrpmDb.Picture
+
+                 }
+                 ).ToList();
+
+            return View(dogs);
+        }
+        
     }
+   
 }
+
+
+
