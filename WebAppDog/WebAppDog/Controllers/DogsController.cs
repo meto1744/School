@@ -50,7 +50,7 @@ namespace WebAppDog.Controllers
         {
             return this.View();
         }
-        public IActionResult All()
+        public IActionResult All(string searchStringBreed,string searchStringName)
         {
             List<DogDetailsViewModel> dogs = context.Dogs
                 .Select(dogFrpmDb => new DogDetailsViewModel
@@ -64,8 +64,21 @@ namespace WebAppDog.Controllers
 
                 }
                  ).ToList();
+            if (!String.IsNullOrEmpty(searchStringBreed)&& !String.IsNullOrEmpty(searchStringName))
+            {
+                dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed) && d.Name.Contains(searchStringName)).ToList();         
+            }
+            else if (!String.IsNullOrEmpty(searchStringBreed))
+            {
+                dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed)).ToList();
+            }
+            else if (!String.IsNullOrEmpty(searchStringName))
+            {
+                dogs = dogs.Where(d => d.Name.Contains(searchStringName)).ToList();
+            }
 
-            return View(dogs);
+            return this.View(dogs);
+
         }
         public IActionResult Edit(int? id)
         {
@@ -134,23 +147,19 @@ namespace WebAppDog.Controllers
         }
         [HttpPost]
 
-        public IActionResult Delete(DogCreateViewModel bindingModel)
+        public IActionResult Delete(int id)
         {
-            if (ModelState.IsValid)
+            Dog item = context.Dogs.Find(id);
+
+            if(item == null)
             {
-                Dog dog = new Dog
-                {
-                    Id = bindingModel.Id,
-                    Name = bindingModel.Name,
-                    Age = bindingModel.Age,
-                    Breed = bindingModel.Breed,
-                    Picture = bindingModel.Picture
-                };
-                context.Dogs.Remove(dog);
-                context.SaveChanges();
-                return this.RedirectToAction("All", "Dogs");
+                return NotFound();
             }
-            return View(bindingModel);
+
+            context.Dogs.Remove(item);
+            context.SaveChanges();
+            return this.RedirectToAction("All", "Dogs");
+               
         }
         public IActionResult Details(int? id)
         {
@@ -173,6 +182,26 @@ namespace WebAppDog.Controllers
                 Picture = item.Picture
             };
             return View(dog);
+
+
+        }
+        public IActionResult Sort()
+        {
+            List<DogDetailsViewModel> dogs = context.Dogs
+                .Select(dogFrpmDb => new DogDetailsViewModel
+
+                {
+                    Id = dogFrpmDb.Id,
+                    Name = dogFrpmDb.Name,
+                    Age = dogFrpmDb.Age,
+                    Breed = dogFrpmDb.Breed,
+                    Picture = dogFrpmDb.Picture
+
+                }
+                 ).OrderBy(x => x.Name ). ToList();
+            
+
+            return this.View(dogs);
 
         }
 
