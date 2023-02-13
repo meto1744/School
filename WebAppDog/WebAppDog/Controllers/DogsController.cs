@@ -1,21 +1,24 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WebAppDog.Abstractions;
 using WebAppDog.Data;
 using WebAppDog.Domain;
 using WebAppDog.Models;
+using WebAppDog.Services;
 
 namespace WebAppDog.Controllers
 {
     public class DogsController : Controller
     {
-        private readonly ApplicationDbContext context;
+        private readonly IDogService _dogService;
 
-        public DogsController(ApplicationDbContext context)
+        public DogsController(IDogService dogService)
         {
-            this.context = context;
+            this._dogService = dogService;
         }
         public IActionResult Index()
         {
@@ -31,28 +34,17 @@ namespace WebAppDog.Controllers
         {
             if (ModelState.IsValid)
             {
-                Dog dogFromDb = new Dog
+                var created = _dogService.Create(bindingModel.Name, bindingModel.Age, bindingModel.Breed, bindingModel.Picture);
+                if (created)
                 {
-                    Name = bindingModel.Name,
-                    Age = bindingModel.Age,
-                    Breed = bindingModel.Breed,
-                    Picture = bindingModel.Picture,
-                };
-
-                context.Dogs.Add(dogFromDb);
-                context.SaveChanges();
-
-                return this.RedirectToAction("Success");
+                    return this.RedirectToAction("Success");
+                }
             }
-            return this.View();
-        }
-        public IActionResult Success()
-        {
             return this.View();
         }
         public IActionResult All(string searchStringBreed,string searchStringName)
         {
-            List<DogDetailsViewModel> dogs = context.Dogs
+            List<DogDetailsViewModel> dogs = _dogService.GetDogs( searchStringBreed, searchStringName)
                 .Select(dogFrpmDb => new DogDetailsViewModel
 
                 {
@@ -62,32 +54,15 @@ namespace WebAppDog.Controllers
                     Breed = dogFrpmDb.Breed,
                     Picture = dogFrpmDb.Picture
 
-                }
-                 ).ToList();
-            if (!String.IsNullOrEmpty(searchStringBreed)&& !String.IsNullOrEmpty(searchStringName))
-            {
-                dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed) && d.Name.Contains(searchStringName)).ToList();         
-            }
-            else if (!String.IsNullOrEmpty(searchStringBreed))
-            {
-                dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed)).ToList();
-            }
-            else if (!String.IsNullOrEmpty(searchStringName))
-            {
-                dogs = dogs.Where(d => d.Name.Contains(searchStringName)).ToList();
-            }
+                }).ToList();
+            
 
             return this.View(dogs);
 
         }
-        public IActionResult Edit(int? id)
+        public IActionResult Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            Dog item = context.Dogs.Find(id);
+            Dog item =_dogService.GetDogById(id);
             if (item == null)
             {
                 return NotFound();
@@ -104,32 +79,26 @@ namespace WebAppDog.Controllers
         }
         [HttpPost]
 
-        public IActionResult Edit(DogCreateViewModel bindingModel)
+        public IActionResult Edit(int id,DogCreateViewModel bindingModel)
         {
             if (ModelState.IsValid)
             {
-                Dog dog = new Dog
+                if (ModelState.IsValid)
                 {
-                    Id = bindingModel.Id,
-                    Name = bindingModel.Name,
-                    Age = bindingModel.Age,
-                    Breed = bindingModel.Breed,
-                    Picture = bindingModel.Picture
-                };
-                context.Dogs.Update(dog);
-                context.SaveChanges();
-                return this.RedirectToAction("All");
+                    var update = _dogService.UpdateDog(id, bindingModel.Name, bindingModel.Age, bindingModel.Breed, bindingModel.Picture);
+                    if (update)
+                    {
+                        return this.RedirectToAction("All");
+                    }
+                }
+                return this.View();
             }
             return View(bindingModel);
         }
-        public IActionResult Delete(int? id)
+        public IActionResult Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
-            Dog item = context.Dogs.Find(id);
+            Dog item = _dogService.GetDogById(id);
             if (item == null)
             {
                 return NotFound();
@@ -147,29 +116,30 @@ namespace WebAppDog.Controllers
         }
         [HttpPost]
 
-        public IActionResult Delete(int id)
+        public IActionResult Delete(int id, IFormCollection collection)
         {
-            Dog item = context.Dogs.Find(id);
+           var deleted = _dogService.RemoveById(id);
 
-            if(item == null)
+            if (deleted)
             {
-                return NotFound();
-            }
+                return this.RedirectToAction("All", "Dogs");
 
-            context.Dogs.Remove(item);
-            context.SaveChanges();
-            return this.RedirectToAction("All", "Dogs");
-               
+            }
+            else
+            {
+                return View();
+            }
         }
-        public IActionResult Details(int? id)
+            
+        public IActionResult Success()
         {
+              return this.View();
+       }
+            
+        public IActionResult Details(int id)
+        {
+            Dog item = _dogService.GetDogById(id);
             if (id == null)
-            {
-                return NotFound();
-            }
-
-            Dog item = context.Dogs.Find(id);
-            if (item == null)
             {
                 return NotFound();
             }
@@ -187,7 +157,7 @@ namespace WebAppDog.Controllers
         }
         public IActionResult Sort()
         {
-            List<DogDetailsViewModel> dogs = context.Dogs
+            List<DogDetailsViewModel> dogs = _dogService.GetDogs()
                 .Select(dogFrpmDb => new DogDetailsViewModel
 
                 {

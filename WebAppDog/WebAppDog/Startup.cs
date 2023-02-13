@@ -11,7 +11,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WebAppDog.Abstractions;
 using WebAppDog.Data;
+using WebAppDog.Services;
 
 namespace WebAppDog
 {
@@ -35,6 +37,7 @@ namespace WebAppDog
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
+            services.AddTransient<IDogService, DogServices>();
 
             services.AddRazorPages();
             services.Configure<IdentityOptions>(option =>
