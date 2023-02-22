@@ -11,9 +11,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WebShopDemo.Abstraction;
 using WebShopDemo.Data;
 using WebShopDemo.Domain;
 using WebShopDemo.Infrastructure;
+using WebShopDemo.Services;
 
 namespace WebShopDemo
 {
@@ -29,24 +31,23 @@ namespace WebShopDemo
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-           // services.AddDbContext<ApplicationDbContext>(options =>
-              //  options.UseSqlServer(
-                 //   Configuration.GetConnectionString("DefaultConnection")));
-           // services.AddDatabaseDeveloperPageExceptionFilter();
 
-           // services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
-                //.AddEntityFrameworkStores<ApplicationDbContext>();//
-                services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseLazyLoadingProxies()
-                .UseSqlServer(
+
+            services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseLazyLoadingProxies()
+            .UseSqlServer(
                 Configuration.GetConnectionString("DefaultConnection")));
             services.AddDatabaseDeveloperPageExceptionFilter();
+
             services.AddDefaultIdentity<ApplicationUser>()
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
-            services.AddControllersWithViews();
 
+            services.AddTransient<ICategoryService, CategoryService>();
+            services.AddTransient<IBrandService, BrandService>();
+
+            services.AddControllersWithViews();
             services.AddRazorPages();
             services.Configure<IdentityOptions>(option =>
             {

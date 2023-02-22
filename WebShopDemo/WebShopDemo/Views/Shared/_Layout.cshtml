@@ -26,26 +26,25 @@
                         </li>
 
                         @if ((this.User.Identity.IsAuthenticated) && (this.User.IsInRole("Administrator")))
-            {
-                <li class="nav-item active">
-                    <div class="dropdown show">
-                        <a class="nav-link active dropdown-toggle" href="#"
-                           id="dropdownMenuLink"
-                           data-toggle="dropdown"
-                           aria-haspopup="true"
-                           aria-expanded="false">
-                            Statistic Modul
-                        </a>
+                        {
+                            <li class="nav-item active">
+                                <div class="dropdown show">
+                                    <a class="nav-link active dropdown-toggle" href="e"
+                                       id="dropdownMenuLink" data-toggle="dropdown"
+                                       aria-haspopup="true" aria-expanded="false">
+                                        Statistic Module
+                                    </a>
 
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                            <a class="dropdown-item" href="/Statistics/Clients">Clients</a>
-                            <a class="dropdown-item" href="/Statistics/Orders">Orders</a>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                        <a class="dropdown-item" href="/Statistic/Clients">Clients</a>
+                                        <a class="dropdown-item" href="/Statistic/Orders">Orders</a>
+                                    </div>
 
-                        </div>
+                                </div>
+                            </li>
 
-                    </div>
-                </li>
-            }
+                        }
+
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
